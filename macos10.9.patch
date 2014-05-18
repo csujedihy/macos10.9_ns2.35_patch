@@ -1,0 +1,423 @@
+diff -aur s-allinone-2.35.orig/ns-2.35/configure ns-allinone-2.35/ns-2.35/configure
+--- ns-allinone-2.35.orig/ns-2.35/configure	2011-11-05 01:29:46.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/configure	2014-01-12 14:30:52.000000000 +0800
+@@ -9301,7 +9301,7 @@
+ fi
+ 
+ case $system in
+-    Darwin-7.*|Darwin-8.*)
++    Darwin-7.*|Darwin-8.*|Darwin-12.*|Darwin-13.*)
+ 	V_LIB="$V_LIB -framework CoreFoundation"
+ esac
+
+diff -aur s-allinone-2.35.orig/install ns-allinone-2.35/install
+--- ns-allinone-2.35.orig/install	2011-11-05 01:18:22.000000000 +0800
++++ ns-allinone-2.35/install	2014-01-14 15:34:34.000000000 +0800
+@@ -200,6 +200,7 @@
+     echo "Darwin detected";
+     DYLD_LIBRARY_PATH=$CUR_PATH/tcl$TCLVER/unix:$CUR_PATH/tk$TKVER/unix:$DYLD_LIBRARY_PATH
+     export DYLD_LIBRARY_PATH
++    export LDFLAGS="-framework CoreFoundation"
+     test_darwin=true
+ fi
+ 
+@@ -565,11 +566,6 @@
+ 
+ cd ./nam-$NAMVER
+ 
+-# XXX temporary OS X hack
+-if  [ "${test_darwin}" = "true" ]; then
+-ln -s /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation libcorefoundation.dylib
+-fi
+-
+ if  [ "${test_cygwin}" = "true" ]; then
+         ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-tclcl=$CUR_PATH/tclcl-$TCLCLVER  --with-tcl-ver=$TCLVER --with-tk-ver=$TKVER || die "Nam configuration failed! Exiting ...";
+ else
+@@ -671,14 +667,19 @@
+ 
+ echo ""
+ echo "----------------------------------------------------------------------------------"
+-echo ""
++echo "The install script will automatically add environment variable to your system,if you run \"ns\" and then system says \"command not found\", you should check your environment varible (~/.bash_profile or ~/.bash_rc)"
+ echo "Please put $CUR_PATH/bin:$CUR_PATH/tcl$TCLVER/unix:$CUR_PATH/tk$TKVER/unix" 
+ echo "into your PATH environment; so that you'll be able to run itm/tclsh/wish/xgraph."
++#Add env var
++echo "export PATH=$PATH:$CUR_PATH/bin:$CUR_PATH/tcl$TCLVER/unix:$CUR_PATH/tk$TKVER/unix" >>~/.bash_profile
+ echo ""
+ echo "IMPORTANT NOTICES:"
+ echo ""
+ echo "(1) You MUST put $CUR_PATH/otcl-$OTCLVER, $CUR_PATH/lib, "
+ echo "    into your LD_LIBRARY_PATH environment variable."
++#Add env var
++echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUR_PATH/otcl-$OTCLVER:$CUR_PATH/lib" >>~/.bash_profile
++
+ echo "    If it complains about X libraries, add path to your X libraries "
+ echo "    into LD_LIBRARY_PATH."
+ echo "    If you are using csh, you can set it like:"
+@@ -687,6 +688,9 @@
+ echo "		export LD_LIBRARY_PATH=<paths>"
+ echo ""
+ echo "(2) You MUST put $CUR_PATH/tcl$TCLVER/library into your TCL_LIBRARY environmental"
++#Add env var
++echo "export TCL_LIBRARY=$TCL_LIBRARY:$CUR_PATH/tcl$TCLVER/library " >>~/.bash_profile
++
+ echo "    variable. Otherwise ns/nam will complain during startup."
+ echo ""
+ echo ""
+
+diff -aur ns-allinone-2.35.orig/nam-1.15/Makefile.in ns-allinone-2.35/nam-1.15/Makefile.in
+--- ns-allinone-2.35.orig/nam-1.15/Makefile.in	2012-09-07 14:36:27.000000000 -0700
++++ ns-allinone-2.35/nam-1.15/Makefile.in	2012-09-07 14:45:22.000000000 -0700
+@@ -72,7 +72,7 @@
+ BLANK	= # make a blank space.  DO NOT add anything to this line
+ AR	= ar rc $(BLANK)
+ LINK	= $(CPP)
+-LDFLAGS	=
++LDFLAGS	= @LDFLAGS@
+ LDOUT	= -o $(BLANK)
+ PERL	= perl
+ RM	= rm -f
+diff -aur ns-allinone-2.35.orig/ns-2.35/indep-utils/webtrace-conv/dec/Makefile.in ns-allinone-2.35/ns-2.35/indep-utils/webtrace-conv/dec/Makefile.in
+--- ns-allinone-2.35.orig/ns-2.35/indep-utils/webtrace-conv/dec/Makefile.in	2012-09-07 14:36:41.000000000 -0700
++++ ns-allinone-2.35/ns-2.35/indep-utils/webtrace-conv/dec/Makefile.in	2012-09-07 14:40:36.000000000 -0700
+@@ -54,7 +54,7 @@
+ CC = @CXX@
+ INCLUDE = -I. @V_INCLUDES@
+ CFLAGS = @V_CCOPT@ -DCPP_NAMESPACE=@CPP_NAMESPACE@
+-LDFLAGS = @V_STATIC@
++LDFLAGS = @LDFLAGS@
+ LIBS = @V_LIB_TCL@ @V_LIB@ @LIBS@
+ INSTALL = @INSTALL@
+ 
+diff -aur ns-allinone-2.35.orig/ns-2.35/indep-utils/webtrace-conv/epa/Makefile.in ns-allinone-2.35/ns-2.35/indep-utils/webtrace-conv/epa/Makefile.in
+--- ns-allinone-2.35.orig/ns-2.35/indep-utils/webtrace-conv/epa/Makefile.in	2012-09-07 14:36:42.000000000 -0700
++++ ns-allinone-2.35/ns-2.35/indep-utils/webtrace-conv/epa/Makefile.in	2012-09-07 14:40:22.000000000 -0700
+@@ -51,7 +51,7 @@
+ 
+ INCLUDE = -I. @V_INCLUDES@
+ CFLAGS = @V_CCOPT@ -DCPP_NAMESPACE=@CPP_NAMESPACE@
+-LDFLAGS = @V_STATIC@
++LDFLAGS = @LDFLAGS@
+ LIBS = @V_LIB_TCL@ @V_LIB@ @LIBS@
+ INSTALL = @INSTALL@
+ 
+diff -aur ns-allinone-2.35.orig/ns-2.35/indep-utils/webtrace-conv/nlanr/Makefile.in ns-allinone-2.35/ns-2.35/indep-utils/webtrace-conv/nlanr/Makefile.in
+--- ns-allinone-2.35.orig/ns-2.35/indep-utils/webtrace-conv/nlanr/Makefile.in	2012-09-07 14:36:42.000000000 -0700
++++ ns-allinone-2.35/ns-2.35/indep-utils/webtrace-conv/nlanr/Makefile.in	2012-09-07 14:40:02.000000000 -0700
+@@ -51,7 +51,7 @@
+ CC = @CXX@
+ INCLUDE = -I. -I../../.. @V_INCLUDES@
+ CFLAGS = @V_CCOPT@ -DCPP_NAMESPACE=@CPP_NAMESPACE@
+-LDFLAGS = @V_STATIC@
++LDFLAGS = @LDFLAGS@
+ LIBS = @V_LIB_TCL@ @V_LIB@ @LIBS@
+ INSTALL = @INSTALL@
+ 
+diff -aur ns-allinone-2.35.orig/ns-2.35/indep-utils/webtrace-conv/ucb/Makefile.in ns-allinone-2.35/ns-2.35/indep-utils/webtrace-conv/ucb/Makefile.in
+--- ns-allinone-2.35.orig/ns-2.35/indep-utils/webtrace-conv/ucb/Makefile.in	2012-09-07 14:36:42.000000000 -0700
++++ ns-allinone-2.35/ns-2.35/indep-utils/webtrace-conv/ucb/Makefile.in	2012-09-07 14:39:41.000000000 -0700
+@@ -29,7 +29,7 @@
+ 
+ INCLUDE = -I. @V_INCLUDES@
+ CFLAGS = @V_CCOPT@ -DCPP_NAMESPACE=@CPP_NAMESPACE@
+-LDFLAGS = @V_STATIC@
++LDFLAGS = @LDFLAGS@
+ LIBS = @V_LIB_TCL@ @V_LIB@ @LIBS@
+ INSTALL = @INSTALL@
+ 
+--- ns-allinone-2.35.orig/otcl-1.14/Makefile.in	2012-09-07 14:37:37.000000000 -0700
++++ ns-allinone-2.35/otcl-1.14/Makefile.in	2012-09-07 21:20:06.000000000 -0700
+@@ -8,6 +8,7 @@
+ CFLAGS=		@CFLAGS@
+ RANLIB= 	@RANLIB@
+ INSTALL=	@INSTALL@
++LDFLAGS=	@LDFLAGS@
+ 
+ #
+ # how to compile, link, and name shared libraries
+@@ -16,7 +17,7 @@
+ SHLIB_LD=	@SHLIB_LD@
+ SHLIB_CFLAGS=	@SHLIB_CFLAGS@
+ SHLIB_SUFFIX=	@SHLIB_SUFFIX@
+-SHLD_FLAGS=	@DL_LD_FLAGS@
++SHLD_FLAGS=	@LDFLAGS@
+ DL_LIBS=	@DL_LIBS@
+ 
+ SHLIB_LD_LIBS  = @SHLIB_LD_LIBS@
+
+diff -aur ns-allinone-2.35.orig/ns-2.35/common/agent.cc ns-allinone-2.35/ns-2.35/common/agent.cc
+--- ns-allinone-2.35.orig/ns-2.35/common/agent.cc	2010-03-08 13:54:49.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/common/agent.cc	2014-01-12 02:21:17.000000000 +0800
+@@ -51,7 +51,7 @@
+ #include "nix/nixnode.h"
+ #endif //HAVE_STL
+ 
+-
++using namespace NIX;
+ 
+ #ifndef min
+ #define min(a, b) (((a) < (b)) ? (a) : (b))
+diff -aur ns-allinone-2.35.orig/ns-2.35/common/node.cc ns-allinone-2.35/ns-2.35/common/node.cc
+--- ns-allinone-2.35.orig/ns-2.35/common/node.cc	2002-05-31 01:44:03.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/common/node.cc	2014-01-12 02:58:36.000000000 +0800
+@@ -42,11 +42,8 @@
+ 
+ #include "address.h"
+ #include "config.h"
+-#ifdef HAVE_STL
+-#include "nix/nixnode.h"
+-#endif //HAVE_STL
+ #include "node.h"
+-
++using namespace NIX;
+ static class LinkHeadClass : public TclClass {
+ public:
+ 	LinkHeadClass() : TclClass("Connector/LinkHead") {}
+diff -aur ns-allinone-2.35.orig/ns-2.35/common/node.h ns-allinone-2.35/ns-2.35/common/node.h
+--- ns-allinone-2.35.orig/ns-2.35/common/node.h	2002-05-31 01:44:03.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/common/node.h	2014-01-12 03:04:44.000000000 +0800
+@@ -59,8 +59,11 @@
+ #include "energy-model.h"
+ #include "location.h"
+ #include "rtmodule.h"
+-
+-class NixNode;
++#ifdef HAVE_STL
++#include "nix/nixnode.h"
++#endif //HAVE_STL
++//class NixNode;
++using namespace NIX;
+ class LinkHead;
+ 
+ LIST_HEAD(linklist_head, LinkHead); // declare list head structure 
+diff -aur ns-allinone-2.35.orig/ns-2.35/common/tclAppInit.cc ns-allinone-2.35/ns-2.35/common/tclAppInit.cc
+--- ns-allinone-2.35.orig/ns-2.35/common/tclAppInit.cc	2008-02-18 11:39:02.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/common/tclAppInit.cc	2014-01-12 04:10:35.000000000 +0800
+@@ -237,7 +237,7 @@
+ Tcl_AppInit(Tcl_Interp *interp)
+ {
+ #ifdef MEMDEBUG_SIMULATIONS
+-        extern MemTrace *globalMemTrace;
++        //extern MemTrace *globalMemTrace;
+         globalMemTrace = new MemTrace;
+ #endif
+ 
+diff -aur ns-allinone-2.35.orig/ns-2.35/common/tkAppInit.cc ns-allinone-2.35/ns-2.35/common/tkAppInit.cc
+--- ns-allinone-2.35.orig/ns-2.35/common/tkAppInit.cc	2007-08-15 13:49:13.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/common/tkAppInit.cc	2014-01-12 04:14:22.000000000 +0800
+@@ -293,7 +293,7 @@
+ Tcl_AppInit(Tcl_Interp *interp)
+ {
+ #ifdef MEMDEBUG_SIMULATIONS
+-        extern MemTrace *globalMemTrace;
++        //extern MemTrace *globalMemTrace;
+         globalMemTrace = new MemTrace;
+ #endif
+ 
+diff -aur ns-allinone-2.35.orig/ns-2.35/linkstate/ls.h ns-allinone-2.35/ns-2.35/linkstate/ls.h
+--- ns-allinone-2.35.orig/ns-2.35/linkstate/ls.h	2010-03-08 13:54:51.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/linkstate/ls.h	2014-01-12 03:56:02.000000000 +0800
+@@ -134,7 +134,7 @@
+ 		return ib.second ? ib.first : baseMap::end();
+ 	}
+ 
+-	void eraseAll() { erase(baseMap::begin(), baseMap::end()); }
++	void eraseAll() { this->erase(baseMap::begin(), baseMap::end()); }
+ 	T* findPtr(Key key) {
+ 		iterator it = baseMap::find(key);
+ 		return (it == baseMap::end()) ? (T *)NULL : &((*it).second);
+diff -aur ns-allinone-2.35.orig/ns-2.35/mdart/mdart.cc ns-allinone-2.35/ns-2.35/mdart/mdart.cc
+--- ns-allinone-2.35.orig/ns-2.35/mdart/mdart.cc	2010-05-10 06:28:41.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/mdart/mdart.cc	2014-01-12 01:40:15.000000000 +0800
+@@ -47,7 +47,7 @@
+ #include <mdart/mdart.h>
+ #include <mdart/mdart_ndp.h>
+ #include <mdart/mdart_adp.h>
+-
++using namespace stlplus;
+ 
+ 
+ //------------------------------------------------------------------------------
+diff -aur ns-allinone-2.35.orig/ns-2.35/mdart/mdart_adp.cc ns-allinone-2.35/ns-2.35/mdart/mdart_adp.cc
+--- ns-allinone-2.35.orig/ns-2.35/mdart/mdart_adp.cc	2010-05-10 06:28:41.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/mdart/mdart_adp.cc	2014-01-12 01:00:18.000000000 +0800
+@@ -105,7 +105,7 @@
+ #ifdef DEBUG_ADP
+ 	fprintf(stdout, "%.9f\tADP::sendDarq(%d)\t\t\tin node %d\twith address %s\n", CURRENT_TIME, reqId, mdart_->id_, bitString(mdart_->address_));
+ #endif
+-	nsaddr_t dstAdd_ = hash(reqId);
++	nsaddr_t dstAdd_ = stlplus::hash(reqId);
+ #ifdef DEBUG_ADP
+ 	fprintf(stdout, "\tsending darq for node %s\n", bitString(dstAdd_));
+ #endif
+@@ -393,7 +393,7 @@
+ 	fprintf(stdout, "%.9f\tMDART::sendDaup()\t\t\t\tin node %d\twith address %s\n", CURRENT_TIME, mdart_->id_, bitString(mdart_->address_));
+ //	printDHT();
+ #endif
+-	nsaddr_t dstAdd_ = hash(mdart_->id_);
++	nsaddr_t dstAdd_ = stlplus::hash(mdart_->id_);
+ #ifdef DEBUG_ADP
+ 	fprintf(stdout, "\tsending daup for node  %s\n", bitString(dstAdd_));
+ 	mdart_->routingTable_->print();
+diff -aur ns-allinone-2.35.orig/ns-2.35/mdart/mdart_dht.cc ns-allinone-2.35/ns-2.35/mdart/mdart_dht.cc
+--- ns-allinone-2.35.orig/ns-2.35/mdart/mdart_dht.cc	2010-05-10 06:28:41.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/mdart/mdart_dht.cc	2014-01-12 01:18:54.000000000 +0800
+@@ -268,7 +268,7 @@
+ 	dhtTable::iterator entry_;
+ 	fprintf(stdout, "\tDHT::printDHT()\n");
+ 	for(entry_ = table_->begin(); entry_ != table_->end(); ++entry_) {
+-		fprintf(stdout, "\t\tnode id = %d\tnode address = %s\texpire time = %f\n", (*entry_)->id(), bitString((*entry_)->address()), (*entry_)->expire());
++		fprintf(stdout, "\t\tnode id = %d\tnode address = %s\texpire time = %f\n", (*entry_)->id(), stlplus::bitString((*entry_)->address()), (*entry_)->expire());
+ 	}
+ }
+ 
+diff -aur ns-allinone-2.35.orig/ns-2.35/mdart/mdart_function.h ns-allinone-2.35/ns-2.35/mdart/mdart_function.h
+--- ns-allinone-2.35.orig/ns-2.35/mdart/mdart_function.h	2010-05-10 06:28:41.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/mdart/mdart_function.h	2014-01-12 00:57:40.000000000 +0800
+@@ -88,6 +88,8 @@
+ //#define DEBUG_PRINT_TABLE
+ //#define DEBUG_ROBY
+ 
++namespace stlplus{
++	
+ 
+ 
+ //------------------------------------------------------------------------------
+@@ -256,6 +258,6 @@
+ 	return addr;
+ }*/
+ 
+-
++}
+ 
+ #endif /*__mdart_function__*/
+diff -aur ns-allinone-2.35.orig/ns-2.35/mdart/mdart_ndp.cc ns-allinone-2.35/ns-2.35/mdart/mdart_ndp.cc
+--- ns-allinone-2.35.orig/ns-2.35/mdart/mdart_ndp.cc	2010-05-10 06:28:41.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/mdart/mdart_ndp.cc	2014-01-12 01:25:38.000000000 +0800
+@@ -299,6 +299,7 @@
+ */}
+ 
+ void NDP::neighborPrint() {
++	using namespace stlplus;
+ #ifdef DEBUG_ADDRESS_ALLOCATION
+  	fprintf(stdout, "\tNDP::neighborPrint()\t\t\tin node %d\twith address %s\n", mdart_->id_, bitString(mdart_->address_));
+ #endif
+@@ -439,6 +440,7 @@
+ 
+ 
+ bool NDP::validateAddress() {
++	using namespace stlplus;
+ #ifdef DEBUG_ADDRESS_ALLOCATION
+ 	fprintf(stdout, "\tNDP::validateAddress()\t\t\tin node %d\twith address %s\n", mdart_->id_, bitString(mdart_->address_));
+ 	mdart_->routingTable_->print();
+diff -aur ns-allinone-2.35.orig/ns-2.35/mdart/mdart_table.cc ns-allinone-2.35/ns-2.35/mdart/mdart_table.cc
+--- ns-allinone-2.35.orig/ns-2.35/mdart/mdart_table.cc	2011-10-03 06:32:34.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/mdart/mdart_table.cc	2014-01-12 01:31:51.000000000 +0800
+@@ -47,7 +47,7 @@
+ #include <mdart/mdart_table.h>
+ #include <mdart/mdart_function.h>
+ 
+-
++using namespace stlplus;
+ 
+ //------------------------------------------------------------------------------
+ // MDART routing table management functions
+diff -aur ns-allinone-2.35.orig/ns-2.35/mobile/god.cc ns-allinone-2.35/ns-2.35/mobile/god.cc
+--- ns-allinone-2.35.orig/ns-2.35/mobile/god.cc	2006-12-27 22:57:23.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/mobile/god.cc	2014-01-12 03:16:56.000000000 +0800
+@@ -57,7 +57,7 @@
+ 
+ #include "diffusion/hash_table.h"
+ #include "mobilenode.h"
+-
++using namespace NSGOD;
+ God* God::instance_;
+ 
+ static class GodClass : public TclClass {
+@@ -474,9 +474,9 @@
+     return false;
+   }
+ 
+-  vector a(mb_node[i]->X(), mb_node[i]->Y(), mb_node[i]->Z());
+-  vector b(mb_node[j]->X(), mb_node[j]->Y(), mb_node[j]->Z());
+-  vector d = a - b;
++  NSGOD::vector a(mb_node[i]->X(), mb_node[i]->Y(), mb_node[i]->Z());
++  NSGOD::vector b(mb_node[j]->X(), mb_node[j]->Y(), mb_node[j]->Z());
++  NSGOD::vector d = a - b;
+ 
+   if (d.length() < RANGE)
+     return true;
+diff -aur ns-allinone-2.35.orig/ns-2.35/mobile/god.h ns-allinone-2.35/ns-2.35/mobile/god.h
+--- ns-allinone-2.35.orig/ns-2.35/mobile/god.h	2006-02-21 23:20:19.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/mobile/god.h	2014-01-12 03:13:40.000000000 +0800
+@@ -75,7 +75,8 @@
+ 
+ 
+ // Cut and Paste from setdest.h   -- Chalermek 12/1/99
+-
++// To bypass compile error caused by ambigious definition, Jedihy 
++namespace NSGOD{
+ class vector {
+ public:
+ 	vector(double x = 0.0, double y = 0.0, double z = 0.0) {
+@@ -115,7 +116,7 @@
+ 	double Y;
+ 	double Z;
+ };
+-
++}
+ // ------------------------
+ 
+ 
+diff -aur ns-allinone-2.35.orig/ns-2.35/nix/classifier-nix.cc ns-allinone-2.35/ns-2.35/nix/classifier-nix.cc
+--- ns-allinone-2.35.orig/ns-2.35/nix/classifier-nix.cc	2006-02-21 23:20:19.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/nix/classifier-nix.cc	2014-01-12 03:35:56.000000000 +0800
+@@ -62,7 +62,7 @@
+ #include "nixvec.h"
+ #include "classifier-nix.h"
+ #include "hdr_nv.h"
+-
++using namespace NIX;
+ /* Define the TCL Class */
+ static class NixClassifierClass : public TclClass {
+ public:
+diff -aur ns-allinone-2.35.orig/ns-2.35/nix/nixnode.cc ns-allinone-2.35/ns-2.35/nix/nixnode.cc
+--- ns-allinone-2.35.orig/ns-2.35/nix/nixnode.cc	2005-09-22 15:44:42.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/nix/nixnode.cc	2014-01-12 03:49:00.000000000 +0800
+@@ -62,7 +62,7 @@
+ #include "nix/nixvec.h"
+ #include "routealgo/routealgo.h"
+ #include "nix/hdr_nv.h"
+-
++using namespace NIX;
+ static RNodeVec_t Nodes; // Vector of known nodes
+ static int NVCount = 0;  // Number of nix vectors
+ static Nixl_t NVMin = 0;    // Smallest nv
+@@ -156,7 +156,7 @@
+   if (last.first == NODE_NONE)
+     {
+       prev = m_Adj.begin();
+-      if (prev == (EdgeVec_it) NULL) // ! How can this happen?
++      if (prev == m_Adj.end()) // ! How can this happen?
+         return(NodeWeight_t(NODE_NONE, 0));
+       pE = *prev;
+       if(0)printf("NextAdj returning first edge %ld\n",
+diff -aur ns-allinone-2.35.orig/ns-2.35/nix/nixnode.h ns-allinone-2.35/ns-2.35/nix/nixnode.h
+--- ns-allinone-2.35.orig/ns-2.35/nix/nixnode.h	2001-04-18 01:30:44.000000000 +0800
++++ ns-allinone-2.35/ns-2.35/nix/nixnode.h	2014-01-12 02:18:32.000000000 +0800
+@@ -9,7 +9,7 @@
+ #include "routealgo/rnode.h"
+ #include "object.h"
+ #include <map>
+-
++namespace NIX{
+ // Define the edge class
+ class Edge {
+ public :
+@@ -53,6 +53,8 @@
+   int          m_Map;             // Which system this node is mapped to
+   NVMap_t*     m_pNixVecs;        // Hash-map list of known NixVectors
+ };
++
++}
+ #endif
