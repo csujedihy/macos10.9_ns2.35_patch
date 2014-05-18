@@ -6,5 +6,5 @@ It took me a lot of time to compile ns2.35 on my rMBP 15' with Mac OS 10.9.2. Th
 3. install
 
 Enjoy!
-
+Chinese version of instructions in detail [Click here](http://csujedihy.github.io/2014/05/18/ns235formacos/)
 Contact me if you have any questions csujedi at gmail.com
