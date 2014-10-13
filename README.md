@@ -9,6 +9,8 @@ Steps:
 2. patch -p1 -i macos10.9.patch 
 3. install
 
+In addition, I also provide my install.sh, which append some path to your environment variables.
+
 Enjoy!
 
 Contact me if you have any question csujedi at gmail.com
