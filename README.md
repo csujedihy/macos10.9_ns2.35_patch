@@ -1,5 +1,5 @@
 ####Patch for installing ns2.35 on Mac os 10.9
-It works well in Mac OSX 10.9. Before using this patch, make sure you have already install other libraries like X11, xQuartz and so on. 
+It works well in Mac OSX 10.9. Before using this patch, make sure you have already installed other libraries like X11, xQuartz and so on. 
 
 Tips: you can easily install these stuffs by homebrew or macports. 
 
