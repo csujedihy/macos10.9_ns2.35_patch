@@ -5,10 +5,11 @@ Tips: you can easily install these stuffs by homebrew or macports.
 
 Steps:
 
+```
   cd ns-allinone-2.35/
   patch -p1 -i macos10.9.patch 
   install
-
+```
 In addition, I also provide my install.sh, which appends several lines to environment variables.
 
 Enjoy!
