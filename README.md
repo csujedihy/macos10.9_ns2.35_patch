@@ -5,12 +5,15 @@ Tips: you can easily install these stuffs by homebrew or macports.
 
 Steps:
 
-1. cd ns-allinone-2.35/
-2. patch -p1 -i macos10.9.patch 
-3. install
+  cd ns-allinone-2.35/
+  patch -p1 -i macos10.9.patch 
+  install
 
 In addition, I also provide my install.sh, which appends several lines to environment variables.
 
 Enjoy!
 
-Contact me if you have any question csujedi at gmail.com
+Reference 
+1. [Debugging ns-2 in Xcode](http://blog.jeswang.org/blog/2014/07/07/debug-ns2-with-xcode/)
+
+Contact me if you have any question csujedi at icloud.com
